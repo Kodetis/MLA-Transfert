@@ -83,9 +83,6 @@ import init, { encrypt_with_password, decrypt_with_password,
 await init('/mla_wasm_bg.wasm');
 ```
 
-Le binaire WASM est servi depuis `public/` et reconstruit en CI à chaque build
-(jamais commité dans le dépôt).
-
 ---
 
 ## API serveur
@@ -144,5 +141,5 @@ L'API est exposée par `mla-transfert-server` (Axum) ou `mla-transfert-worker`
 | Headers HTTP | CSP, X-Frame-Options DENY, X-Content-Type-Options, HSTS — `src/middleware.ts` |
 | Filename sanitisation | `sanitize_filename()` dans `relay.rs` — alphanum + `.`, `-`, `_`, max 255 bytes |
 | Erreurs WASM | Messages génériques uniquement (`"Decryption failed"`) — pas de fuite d'information |
-| Mot de passe | Générateur CSPRNG avec rejection sampling (pas de biais de modulo) |
+| Mot de passe | Générateur CSPRNG avec rejection sampling |
 ```
