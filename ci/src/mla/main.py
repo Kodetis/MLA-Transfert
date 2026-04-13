@@ -21,14 +21,15 @@ Run one step:    dagger call rust-fmt --src .
 import dagger
 from dagger import dag, function, object_type
 
-RUST_IMAGE = "rust:1-slim-bookworm"
-WASM_IMAGE = "rust:1-slim-bookworm"
-NODE_IMAGE = "node:22-slim"
+# Update: 2026-04
+RUST_IMAGE = "rust:1.94.1-slim-bookworm"
+WASM_IMAGE = "rust:1.94.1-slim-bookworm"
+NODE_IMAGE = "node:22.22.2-slim"
 # Anchore tools — Syft (SBOM) + Grype (CVE scan)
-ANCHORE_IMAGE = "anchore/syft:latest"
-GRYPE_IMAGE = "anchore/grype:latest"
+ANCHORE_IMAGE = "anchore/syft:v1.42.4"
+GRYPE_IMAGE = "anchore/grype:v0.111.0"
 # Cosign — SBOM attestation signing
-COSIGN_IMAGE = "gcr.io/projectsigstore/cosign:latest"
+COSIGN_IMAGE = "gcr.io/projectsigstore/cosign:v3.0.6"
 # wasm-pack pinned version (CI1 fix — no more curl|sh)
 WASM_PACK_VERSION = "0.13.1"
 

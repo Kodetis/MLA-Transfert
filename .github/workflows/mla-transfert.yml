@@ -30,9 +30,6 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-
       - name: Cache Rust build
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
@@ -42,6 +39,9 @@ jobs:
             target/
           key: wasm-${{ hashFiles('mla-wasm/Cargo.toml', 'Cargo.lock') }}
           restore-keys: wasm-
+
+      - name: Install wasm-pack (pinned)
+        run: cargo install wasm-pack --locked --version 0.13.1
 
       - name: Build WASM package
         run: wasm-pack build mla-wasm --target web --out-dir pkg
@@ -98,8 +98,8 @@ jobs:
       - name: Install clippy & rustfmt
         run: rustup component add clippy rustfmt
 
-      - name: Install wasm-pack (needed for clippy on mla-wasm)
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - name: Install wasm-pack (pinned)
+        run: cargo install wasm-pack --locked --version 0.13.1
 
       - name: Clippy — server
         run: cargo clippy -p mla-transfert-server -- -D warnings

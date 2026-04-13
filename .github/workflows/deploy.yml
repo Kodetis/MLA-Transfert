@@ -7,21 +7,21 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       # ── Rust + wasm-pack ───────────────────────────────────────────────
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # stable (2026-03-27)
         with:
           targets: wasm32-unknown-unknown
 
       - name: Cache Rust
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: |
             ~/.cargo/registry
@@ -38,9 +38,9 @@ jobs:
 
       # ── Node + Astro ───────────────────────────────────────────────────
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22
+          node-version: '22'
           cache: npm
           cache-dependency-path: mla-transfert-web/package-lock.json
 
@@ -51,7 +51,7 @@ jobs:
       - name: Build frontend
         working-directory: mla-transfert-web
         env:
-          PUBLIC_API_URL: https://mla-share.kodetis.cloud
+          PUBLIC_API_URL: ${{ vars.PUBLIC_API_URL }}
         run: npm run build
 
       # ── Deploy ─────────────────────────────────────────────────────────
