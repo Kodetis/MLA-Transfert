@@ -206,8 +206,10 @@ You should read [API documentation](https://github.com/ANSSI-FR/MLA#api-usage) a
 
 ## Guides
 
-- [Guide utilisateur web](mla-transfert-web/GUIDE_UTILISATEUR.md) — envoyer et recevoir via le navigateur
-- [Guide CLI](GUIDE_CLI.md) — `mlar` pour les transferts en ligne de commande et les gros fichiers
+- [Guide utilisateur](doc/GUIDE-UTILISATEUR.md) — interface web, CLI `mlar`, cas d'usage
+- [Architecture](doc/ARCHITECTURE.md) — zero-knowledge, composants, flux de données
+- [Référence technique](doc/REFERENCE-TECHNIQUE.md) — crypto, API WASM, endpoints serveur
+- [Déploiement](doc/DEPLOIEMENT.md) — self-host (Docker) + Cloudflare + CI/CD
 - [CI Dagger](ci/README.md) — pipeline de sécurité, étapes, exécution locale
 
 ## Quick start — local dev
