@@ -1,0 +1,32 @@
+name = "mla-transfert-worker"
+main = "build/worker/shim.mjs"
+compatibility_date = "2025-01-01"
+
+[build]
+command = "worker-build --release"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "mla-transfers"
+preview_bucket_name = "mla-transfers-preview"
+
+[[kv_namespaces]]
+binding = "TRANSFERS_KV"
+id = "de7c55799d3d40049f265c0d92f0aa7a"
+
+[durable_objects]
+bindings = [
+  { name = "SIGNAL_ROOM", class_name = "SignalRoom" }
+]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SignalRoom"]
+
+[vars]
+MAX_FILE_SIZE_BYTES = "104857600"  # 100 Mo (plan free CF)
+ALLOWED_ORIGIN = "https://share.kodetis.cloud"
+
+[[routes]]
+pattern = "share.kodetis.cloud/api/*"
+zone_name = "kodetis.cloud"
