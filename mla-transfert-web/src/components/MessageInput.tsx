@@ -18,6 +18,7 @@ export default function MessageInput() {
   const [status, setStatus] = useState<'idle' | 'encrypting' | 'done' | 'error'>('idle');
   const [shareLink, setShareLink] = useState('');
   const [error, setError] = useState('');
+  const [autoCopied, setAutoCopied] = useState(false);
 
   const remaining = MAX_CHARS - text.length;
   const isOverLimit = remaining < 0;
@@ -25,7 +26,9 @@ export default function MessageInput() {
   // Auto-copy link when done
   useEffect(() => {
     if (status === 'done' && shareLink) {
-      navigator.clipboard.writeText(shareLink).catch(() => {});
+      navigator.clipboard.writeText(shareLink)
+        .then(() => setAutoCopied(true))
+        .catch(() => setAutoCopied(false));
     }
   }, [status, shareLink]);
 
@@ -116,7 +119,7 @@ export default function MessageInput() {
       {/* Share link */}
       {status === 'done' && shareLink && (
         <>
-          <ShareLink link={shareLink} autoCopied />
+          <ShareLink link={shareLink} autoCopied={autoCopied} />
           <button onClick={handleReset} className="btn-secondary">
             Nouveau message
           </button>
