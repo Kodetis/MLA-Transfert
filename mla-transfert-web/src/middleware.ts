@@ -13,7 +13,7 @@ export const onRequest = defineMiddleware((_ctx, next) => {
           "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://static.cloudflareinsights.com",
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' data:",
-          "connect-src 'self' wss: https://cloudflareinsights.com",
+          `connect-src 'self' wss: https://cloudflareinsights.com${import.meta.env.DEV ? ' http://localhost:8787' : ''}`,
           "font-src 'self' data:",
           "object-src 'none'",
           "frame-ancestors 'none'",
