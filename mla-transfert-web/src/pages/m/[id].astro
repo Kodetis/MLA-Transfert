@@ -1,14 +1,14 @@
 ---
 export const prerender = false;
+import Layout from '../../layouts/Layout.astro';
+import MessageDisplay from '../../components/MessageDisplay';
 
-import Layout from '../layouts/Layout.astro';
-import MessageDisplay from '../components/MessageDisplay';
+const { id } = Astro.params;
 ---
 
 <Layout title="MLA-Share — Message sécurisé">
   <div class="animate-slide-up space-y-8">
 
-    <!-- Header -->
     <div class="text-center space-y-3">
       <h2 class="text-4xl font-bold tracking-tight">
         Message <span class="text-gradient">sécurisé</span> reçu
@@ -18,9 +18,8 @@ import MessageDisplay from '../components/MessageDisplay';
       </p>
     </div>
 
-    <!-- Display card -->
     <div class="card p-8">
-      <MessageDisplay client:load />
+      <MessageDisplay id={id!} client:load />
     </div>
 
   </div>

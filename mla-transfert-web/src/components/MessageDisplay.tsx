@@ -1,48 +1,97 @@
 // src/components/MessageDisplay.tsx
 // Receive page for encrypted text messages.
-// Reads fragment from window.location.hash, imports key, decrypts, displays message.
-// No server interaction — everything happens client-side.
+// Fetches encrypted blob from worker KV via GET /api/message/:id.
+// Without password: imports AES key from URL fragment (#key).
+// With password: prompts for password, derives key via PBKDF2-SHA256.
+// All decryption happens client-side — server never sees plaintext or key.
 
 import { useEffect, useState } from 'react';
 import {
   importKey,
+  deriveKeyFromPassword,
   decryptMessage,
-  parseMessageFragment,
+  fromBase64Url,
 } from '../lib/crypto';
+import { getMessage } from '../lib/api';
 
-type Status = 'decrypting' | 'done' | 'error' | 'invalid';
+type Status = 'loading' | 'needs_password' | 'decrypting' | 'done' | 'error' | 'expired' | 'invalid';
 
-export default function MessageDisplay() {
-  const [status, setStatus] = useState<Status>('decrypting');
+interface Props {
+  id: string;
+}
+
+export default function MessageDisplay({ id }: Props) {
+  const [status, setStatus] = useState<Status>('loading');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [password, setPassword] = useState('');
+  const [blob, setBlob] = useState<{ ciphertext: string; iv: string; salt?: string } | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
-        const hash = window.location.hash;
-        const parsed = parseMessageFragment(hash);
+        const data = await getMessage(id);
 
-        if (!parsed) {
-          setStatus('invalid');
-          return;
+        if (!data.has_password) {
+          const fragment = window.location.hash.slice(1);
+          if (!fragment) {
+            setStatus('invalid');
+            return;
+          }
+          await decryptAndShow(data.ciphertext, data.iv, fragment);
+        } else {
+          setBlob({ ciphertext: data.ciphertext, iv: data.iv, salt: data.salt });
+          setStatus('needs_password');
         }
-
-        const key = await importKey(parsed.keyB64url);
-        const plaintext = await decryptMessage(
-          { iv: parsed.iv, ciphertext: parsed.ciphertext },
-          key,
-        );
-
-        setMessage(plaintext);
-        setStatus('done');
-      } catch {
-        setError('Impossible de déchiffrer le message. Le lien est peut-être incomplet ou corrompu.');
-        setStatus('error');
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : '';
+        if (msg.includes('expiré') || msg.includes('introuvable')) {
+          setStatus('expired');
+        } else {
+          setError(msg || 'Impossible de récupérer le message.');
+          setStatus('error');
+        }
       }
     })();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  async function decryptAndShow(
+    ciphertextB64: string,
+    ivB64: string,
+    keyOrPassword: string,
+    isPassword = false,
+    saltB64?: string,
+  ) {
+    setStatus('decrypting');
+    try {
+      let key;
+      if (isPassword) {
+        if (!saltB64) throw new Error('Salt manquant pour la dérivation de clé.');
+        key = await deriveKeyFromPassword(keyOrPassword, fromBase64Url(saltB64));
+      } else {
+        key = await importKey(keyOrPassword);
+      }
+
+      const plaintext = await decryptMessage(
+        { iv: fromBase64Url(ivB64), ciphertext: fromBase64Url(ciphertextB64) },
+        key,
+      );
+
+      setMessage(plaintext);
+      setStatus('done');
+    } catch {
+      setError('Mot de passe incorrect ou lien corrompu.');
+      setStatus('error');
+    }
+  }
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!blob || !password.trim()) return;
+    await decryptAndShow(blob.ciphertext, blob.iv, password, true, blob.salt);
+  };
 
   const handleCopy = async () => {
     try {
@@ -50,20 +99,63 @@ export default function MessageDisplay() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     } catch {
-      // clipboard unavailable — user can still select text manually
+      // clipboard unavailable — user can select text manually
     }
   };
 
-  if (status === 'decrypting') {
+  if (status === 'loading' || status === 'decrypting') {
     return (
       <div className="text-center py-12 space-y-3 animate-fade-in">
         <div
           className="w-8 h-8 rounded-full border-2 border-t-transparent mx-auto animate-spin"
           style={{ borderColor: 'var(--accent)' }}
           role="status"
-          aria-label="Déchiffrement en cours"
+          aria-label={status === 'loading' ? 'Chargement en cours' : 'Déchiffrement en cours'}
         />
-        <p className="text-sm" style={{ color: 'var(--text-2)' }}>Déchiffrement…</p>
+        <p className="text-sm" style={{ color: 'var(--text-2)' }}>
+          {status === 'loading' ? 'Chargement…' : 'Déchiffrement…'}
+        </p>
+      </div>
+    );
+  }
+
+  if (status === 'needs_password') {
+    return (
+      <div className="max-w-sm mx-auto space-y-5 animate-slide-up">
+        <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>
+          Ce message est protégé par mot de passe.
+        </p>
+        <form onSubmit={handlePasswordSubmit} className="space-y-4">
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Entrez le mot de passe"
+            autoFocus
+            className="input-field w-full text-sm"
+            aria-label="Mot de passe de déchiffrement"
+            autoComplete="current-password"
+          />
+          <button
+            type="submit"
+            disabled={!password.trim()}
+            className="btn-primary w-full"
+          >
+            Déchiffrer
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  if (status === 'expired') {
+    return (
+      <div className="text-center py-12 space-y-4 animate-fade-in">
+        <p className="text-lg font-semibold" style={{ color: 'var(--coral)' }}>Message expiré</p>
+        <p className="text-sm max-w-sm mx-auto" style={{ color: 'var(--text-2)' }}>
+          Ce message a dépassé sa durée de conservation. Demandez à l'expéditeur de vous envoyer un nouveau lien.
+        </p>
+        <a href="/" className="btn-secondary inline-block">Accueil</a>
       </div>
     );
   }
@@ -73,7 +165,7 @@ export default function MessageDisplay() {
       <div className="text-center py-12 space-y-4 animate-fade-in">
         <p className="text-lg font-semibold" style={{ color: 'var(--coral)' }}>Lien invalide</p>
         <p className="text-sm max-w-sm mx-auto" style={{ color: 'var(--text-2)' }}>
-          Ce lien ne contient pas de message chiffré valide. Vérifiez que vous avez copié le lien en entier, y compris la partie après le <code>#</code>.
+          Ce lien ne contient pas de clé de déchiffrement. Vérifiez que vous avez copié le lien en entier, y compris la partie après le <code>#</code>.
         </p>
         <a href="/" className="btn-secondary inline-block">Accueil</a>
       </div>
@@ -90,11 +182,8 @@ export default function MessageDisplay() {
     );
   }
 
-  // status === 'done'
   return (
     <div className="space-y-5 max-w-xl mx-auto animate-slide-up">
-
-      {/* Success badge */}
       <p className="text-sm font-medium flex items-center gap-2" style={{ color: 'var(--success)' }}>
         <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -102,7 +191,6 @@ export default function MessageDisplay() {
         Message déchiffré avec succès
       </p>
 
-      {/* Message display */}
       <div className="relative">
         <textarea
           readOnly
@@ -115,8 +203,7 @@ export default function MessageDisplay() {
         />
       </div>
 
-      {/* Copy button */}
-      <button onClick={handleCopy} className="btn-primary">
+      <button type="button" onClick={handleCopy} className="btn-primary">
         {copied ? (
           <>
             <svg aria-hidden="true" className="w-4 h-4 inline mr-1.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -129,11 +216,9 @@ export default function MessageDisplay() {
         )}
       </button>
 
-      {/* Privacy notice */}
       <p className="text-xs" style={{ color: 'var(--text-3)' }}>
         Ce message a été déchiffré localement dans votre navigateur. Aucune donnée n'a transité par nos serveurs.
       </p>
-
     </div>
   );
 }
