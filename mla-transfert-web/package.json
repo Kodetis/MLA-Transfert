@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "build:prod": "PUBLIC_API_URL=https://mla-share.kodetis.cloud astro build",
+    "build:prod": "PUBLIC_API_URL=https://share.kodetis.cloud astro build",
     "preview": "astro preview",
     "deploy": "npm run build:prod && wrangler pages deploy dist --project-name mla-transfert-web --branch main --commit-dirty=true"
   },

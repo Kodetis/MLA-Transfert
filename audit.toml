@@ -8,7 +8,19 @@
 # Waiting on ANSSI-FR/MLA to bump their dependency.
 # Tracked in todo.md § Veille upstream ANSSI-FR/MLA
 # Re-evaluate when ANSSI-FR/MLA cuts a new release.
-ignore = ["RUSTSEC-2025-0144"]
+ignore = [
+    # RUSTSEC-2025-0144 — Timing side-channel in ml-dsa 0.0.4
+    # Upstream ANSSI — réévaluer quand MLA bumpe ml-dsa vers >=0.1.0-rc.3.
+    "RUSTSEC-2025-0144",
+
+    # RUSTSEC-2025-0141 — bincode 1.3.3 unmaintained (tiré par mla v1.4.0 legacy)
+    # Pas de correctif disponible. Réévaluer si ANSSI migre mlar-upgrader.
+    "RUSTSEC-2025-0141",
+
+    # RUSTSEC-2026-0097 — rand 0.10.0 unsound (custom logger + thread_rng)
+    # Condition non applicable à l'usage MLA. Réévaluer sur patch upstream.
+    "RUSTSEC-2026-0097",
+]
 
 # unmaintained / unsound / yanked warnings come from upstream mla crate deps.
 # They are surfaced as warnings in CI but do NOT fail the build.

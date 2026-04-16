@@ -10,7 +10,7 @@ ne voit jamais leur contenu ni les clés utilisées.
 
 ### Accès
 
-L'instance publique est disponible sur **https://mla-share.kodetis.cloud**.
+L'instance publique est disponible sur **https://share.kodetis.cloud**.
 
 Pour déployer votre propre instance, voir [Déploiement](DEPLOIEMENT.md).
 
@@ -141,10 +141,10 @@ mlar cat     -k destinataire.mlapriv -p expediteur.mlapub -i archive.mla chemin/
 ### Uploader vers MLA-Share
 
 ```bash
-curl -sX POST https://mla-share.kodetis.cloud/api/upload \
+curl -sX POST https://share.kodetis.cloud/api/upload \
   -F "file=@archive.mla" \
   -F "expires_hours=24" \
-  | jq -r '"Lien : https://mla-share.kodetis.cloud/receive/" + .id'
+  | jq -r '"Lien : https://share.kodetis.cloud/receive/" + .id'
 ```
 
 Le destinataire déchiffre depuis le navigateur — **aucune installation requise de son côté**.
@@ -174,10 +174,10 @@ mlar create \
   -o vm_compromise_$(date +%Y%m%d_%H%M).mla \
   dump_memoire.raw disk_image.dd
 
-curl -sX POST https://mla-share.kodetis.cloud/api/upload \
+curl -sX POST https://share.kodetis.cloud/api/upload \
   -F "file=@vm_compromise_*.mla" \
   -F "expires_hours=1" \
-  | jq -r '"https://mla-share.kodetis.cloud/receive/" + .id'
+  | jq -r '"https://share.kodetis.cloud/receive/" + .id'
 ```
 
 ### Backup PostgreSQL vers administrateur distant
@@ -187,7 +187,7 @@ pg_dump ma_base | gzip | mlar create \
   -k serveur.mlapriv -p admin.mlapub \
   -o pg_backup_$(hostname)_$(date +%Y%m%d).mla --stdin-data
 
-curl -sX POST https://mla-share.kodetis.cloud/api/upload \
+curl -sX POST https://share.kodetis.cloud/api/upload \
   -F "file=@pg_backup_*.mla" -F "expires_hours=168" | jq -r '.id'
 ```
 

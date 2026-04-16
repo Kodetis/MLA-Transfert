@@ -96,7 +96,7 @@ Navigateur A (sender)          Serveur (signaling)          Navigateur B (receiv
 ```
 Cloudflare Pages              Cloudflare Worker
 mla-transfert-web             mla-transfert-worker
-https://mla-share.kodetis.cloud
+https://share.kodetis.cloud
   │                                │
   │  /api/*  ────────────────────► │
   │                                │
