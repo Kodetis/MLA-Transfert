@@ -47,7 +47,7 @@ Date : 2026-04-12
         │  ┌────────────────────────────────────────┐  │
         │  │  Cloudflare Pages                      │  │
         │  │  mla-transfert-web (frontend SSR/SPA)  │  │
-        │  │  https://mla-share.kodetis.cloud       │  │
+        │  │  https://share.kodetis.cloud       │  │
         │  └────────────────────────────────────────┘  │
         │                                              │
         │  ┌────────────────────────────────────────┐  │
@@ -127,7 +127,7 @@ git push → main
 │                                                     │
 │     npm ci                                          │
 │     npm run build                                   │
-│     PUBLIC_API_URL=https://mla-share.kodetis.cloud  │
+│     PUBLIC_API_URL=https://share.kodetis.cloud  │
 │     (baked à la compilation — pas de runtime var)   │
 │     → mla-transfert-web/dist/                       │
 │                                                     │
@@ -148,7 +148,7 @@ git push → main
         │  projet : mla-transfert-web  │
         │  production branch : main    │
         │                              │
-        │  → https://mla-share.kodetis.cloud  │
+        │  → https://share.kodetis.cloud  │
         └──────────────────────────────┘
 ```
 
@@ -191,9 +191,9 @@ Aucun secret dans le code source. `wrangler.toml` est gitignore.
 
 | URL | Service |
 |-----|---------|
-| `https://mla-share.kodetis.cloud` | Cloudflare Pages (frontend) |
-| `https://mla-share.kodetis.cloud/api/*` | Cloudflare Worker (prioritaire sur Pages) |
-| `https://mla-share.kodetis.cloud/receive/:id` | Pages (page de réception) |
+| `https://share.kodetis.cloud` | Cloudflare Pages (frontend) |
+| `https://share.kodetis.cloud/api/*` | Cloudflare Worker (prioritaire sur Pages) |
+| `https://share.kodetis.cloud/receive/:id` | Pages (page de réception) |
 
 ---
 

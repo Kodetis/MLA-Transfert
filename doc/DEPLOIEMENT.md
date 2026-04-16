@@ -141,6 +141,6 @@ Déclenchement automatique sur chaque push vers `main` via GitHub Actions
 
 | URL | Service |
 |---|---|
-| `https://mla-share.kodetis.cloud` | Cloudflare Pages (frontend) |
-| `https://mla-share.kodetis.cloud/api/*` | Cloudflare Worker (prioritaire sur Pages) |
-| `https://mla-share.kodetis.cloud/receive/:id` | Pages (page de réception) |
+| `https://share.kodetis.cloud` | Cloudflare Pages (frontend) |
+| `https://share.kodetis.cloud/api/*` | Cloudflare Worker (prioritaire sur Pages) |
+| `https://share.kodetis.cloud/receive/:id` | Pages (page de réception) |
