@@ -1,12 +1,11 @@
 // src/lib/crypto.ts
 // AES-256-GCM client-side encryption via Web Crypto API.
 // No server-side key storage — key is either in the URL fragment (no password)
-// or derived client-side via Argon2id from user password (password-protected).
+// or derived client-side via PBKDF2-SHA256 from user password (password-protected).
 //
-// Argon2id params (ANSSI/NIST aligned): time=3, mem=64MiB, parallelism=4, hashLen=32B
-//
-// argon2-browser is loaded via dynamic import to avoid bundling the WASM
-// into the SSR / Cloudflare Worker entrypoint — only runs client-side.
+// Password derivation: PBKDF2-SHA256, 600,000 iterations (NIST SP 800-132 / OWASP 2023).
+// Note: Argon2id would be stronger (memory-hard) but requires WASM which is incompatible
+// with @astrojs/cloudflare post-build processing. PBKDF2 is the Web Crypto API native fallback.
 
 const ALGO = { name: 'AES-GCM', length: 256 } as const;
 
@@ -55,26 +54,29 @@ export function generateSalt(): Uint8Array {
 }
 
 /**
- * Derive an AES-256 key from a password using Argon2id.
- * Params: time_cost=3, mem=64MiB, parallelism=4 (ANSSI-aligned).
+ * Derive an AES-256 key from a password using PBKDF2-SHA256.
+ * 600,000 iterations (OWASP 2023 / NIST SP 800-132 recommendation).
  * The derived key is non-extractable (cannot be exported from the browser).
- * Uses dynamic import to keep the WASM out of the SSR bundle.
+ * Pure Web Crypto API — no WASM, no dependencies.
  */
 export async function deriveKeyFromPassword(
   password: string,
   salt: Uint8Array,
 ): Promise<CryptoKey> {
-  const { default: argon2, ArgonType } = await import('argon2-browser');
-  const result = await argon2.hash({
-    pass: password,
-    salt,
-    type: ArgonType.Argon2id,
-    hashLen: 32,
-    time: 3,
-    mem: 65536, // KiB = 64 MiB
-    parallelism: 4,
-  });
-  return crypto.subtle.importKey('raw', result.hash, ALGO, false, ['encrypt', 'decrypt']);
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(password),
+    'PBKDF2',
+    false,
+    ['deriveKey'],
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: 600_000, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt'],
+  );
 }
 
 // -- Encrypt ----------------------------------------------------------------

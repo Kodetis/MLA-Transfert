@@ -17,7 +17,6 @@
     "@astrojs/tailwind": "^6.0.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "argon2-browser": "^1.18.0",
     "astro": "^5.18.1",
     "mla-wasm": "file:../mla-wasm/pkg",
     "react": "^19.2.4",

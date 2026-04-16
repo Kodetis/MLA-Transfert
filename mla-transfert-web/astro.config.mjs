@@ -9,7 +9,7 @@ export default defineConfig({
   integrations: [react(), tailwind({ applyBaseStyles: false })],
   vite: {
     optimizeDeps: {
-      exclude: ['mla-wasm', 'argon2-browser'],
+      exclude: ['mla-wasm'],
     },
   },
 });
