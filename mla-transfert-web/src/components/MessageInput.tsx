@@ -195,7 +195,7 @@ export default function MessageInput() {
       <p className="text-xs rounded-lg px-4 py-3" style={{ background: 'var(--bg-surface)', color: 'var(--text-2)' }}>
         {usePassword
           ? 'Le message est chiffré avec votre mot de passe. Le serveur ne stocke que des octets chiffrés.'
-          : 'La clé de déchiffrement est dans le lien. Quiconque possède le lien peut lire le message.'}
+          : 'La clé est dans le lien — quiconque le reçoit peut lire le message. Partagez-le avec soin.'}
       </p>
 
       {/* Error */}

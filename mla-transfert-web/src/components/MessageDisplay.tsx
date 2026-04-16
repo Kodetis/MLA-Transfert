@@ -217,7 +217,7 @@ export default function MessageDisplay({ id }: Props) {
       </button>
 
       <p className="text-xs" style={{ color: 'var(--text-3)' }}>
-        Ce message a été déchiffré localement dans votre navigateur. Aucune donnée n'a transité par nos serveurs.
+        Ce n'est pas une promesse — c'est une contrainte cryptographique. Même nous ne pouvons pas lire ce message.
       </p>
     </div>
   );
