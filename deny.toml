@@ -7,11 +7,25 @@
 ignore = [
     # RUSTSEC-2025-0144 — Timing side-channel in ml-dsa 0.0.4
     # Upstream ANSSI dependency — cannot patch directly.
+    # Réévaluer quand ANSSI-FR/MLA bumpe ml-dsa vers >=0.1.0-rc.3.
     "RUSTSEC-2025-0144",
+
+    # RUSTSEC-2025-0141 — bincode 1.3.3 unmaintained (no safe upgrade available)
+    # Tiré par mla v1.4.0 (legacy) → mlar-upgrader (outil d'upgrade ANSSI).
+    # Pas de correctif upstream ; l'équipe bincode considère 1.3.3 comme complet.
+    # Réévaluer si ANSSI migre mlar-upgrader vers une alternative (postcard, bitcode).
+    "RUSTSEC-2025-0141",
+
+    # RUSTSEC-2026-0097 — rand 0.10.0 unsound avec custom logger + thread_rng
+    # Condition déclenchante très spécifique (features log+thread_rng + logger custom
+    # appelant rand::rng()). Non applicable à l'usage MLA (pas de custom logger).
+    # Réévaluer quand une version patchée de rand est disponible upstream.
+    "RUSTSEC-2026-0097",
 ]
 
 [licenses]
 # Only allow permissive and weak-copyleft licenses compatible with LGPL-3.0.
+# Any license not listed here is implicitly denied (GPL, AGPL, etc.).
 allow = [
     "MIT",
     "Apache-2.0",
@@ -19,17 +33,13 @@ allow = [
     "BSD-2-Clause",
     "BSD-3-Clause",
     "ISC",
+    "Zlib",             # permissive — foldhash (hashbrown dep)
     "Unicode-DFS-2016",
+    "Unicode-3.0",      # OSI approved — unicode-ident
     "CC0-1.0",
     "MPL-2.0",          # weak copyleft — acceptable
     "LGPL-3.0-only",    # our own crates
     "LGPL-3.0-or-later",
-]
-# Fail on GPL-only crates (would force whole project to GPL).
-deny = [
-    "GPL-2.0",
-    "GPL-3.0",
-    "AGPL-3.0",
 ]
 # Allow crates that have no license but are known safe.
 exceptions = []
