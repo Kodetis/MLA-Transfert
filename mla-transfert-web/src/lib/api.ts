@@ -133,3 +133,69 @@ export async function getTransferInfo(id: string): Promise<TransferInfo> {
 
   return response.json();
 }
+
+// -- Message API ------------------------------------------------------------
+
+export interface PostMessageRequest {
+  ciphertext: string;   // base64url
+  iv: string;           // base64url
+  salt?: string;        // base64url — uniquement si has_password=true
+  has_password: boolean;
+  ttl_hours: 1 | 7 | 24;
+}
+
+export interface PostMessageResponse {
+  id: string;
+}
+
+export interface GetMessageResponse {
+  ciphertext: string;
+  iv: string;
+  salt?: string;
+  has_password: boolean;
+}
+
+export async function postMessage(
+  body: PostMessageRequest,
+): Promise<PostMessageResponse> {
+  return withRetry(async () => {
+    const response = await fetchWithTimeout(
+      `${API_BASE}/api/message`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      },
+      15_000,
+    );
+
+    if (response.status >= 400 && response.status < 500) {
+      throw new Error(await extractError(response, 'Impossible de créer le message'));
+    }
+    if (!response.ok) {
+      throw new Error(await extractError(response, 'Erreur serveur'));
+    }
+
+    return response.json();
+  });
+}
+
+export async function getMessage(id: string): Promise<GetMessageResponse> {
+  const response = await fetchWithTimeout(
+    `${API_BASE}/api/message/${id}`,
+    {},
+    10_000,
+  );
+
+  if (response.status === 410) {
+    throw new Error('Ce message a expiré');
+  }
+  if (response.status >= 400 && response.status < 500) {
+    throw new Error('Message introuvable');
+  }
+  if (!response.ok) {
+    throw new Error('Erreur serveur lors de la récupération du message');
+  }
+
+  return response.json();
+}

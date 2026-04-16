@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import SendForm from '../components/SendForm';
+import MessageInput from '../components/MessageInput';
 ---
 
 <Layout title="MLA-Share — Envoi sécurisé">
@@ -16,10 +17,68 @@ import SendForm from '../components/SendForm';
       </p>
     </div>
 
-    <!-- Form card -->
-    <div class="card p-8 animate-slide-up" style="animation-delay:0.05s">
+    <!-- Tab selector -->
+    <div class="flex justify-center">
+      <div class="mode-toggle" role="tablist" aria-label="Type de transfert">
+        <button
+          type="button"
+          id="tab-file"
+          role="tab"
+          aria-selected="true"
+          aria-controls="panel-file"
+          class="mode-toggle-btn mode-toggle-btn-active"
+          onclick="switchTab('file')"
+        >
+          Fichier
+        </button>
+        <button
+          type="button"
+          id="tab-message"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-message"
+          class="mode-toggle-btn mode-toggle-btn-inactive"
+          onclick="switchTab('message')"
+        >
+          Message
+        </button>
+      </div>
+    </div>
+
+    <!-- File panel -->
+    <div id="panel-file" role="tabpanel" aria-labelledby="tab-file" class="card p-8 animate-slide-up" style="animation-delay:0.05s">
       <SendForm client:load />
+    </div>
+
+    <!-- Message panel -->
+    <div id="panel-message" role="tabpanel" aria-labelledby="tab-message" class="card p-8 animate-slide-up hidden" style="animation-delay:0.05s">
+      <MessageInput client:load />
     </div>
 
   </div>
 </Layout>
+
+<script is:inline>
+  function switchTab(tab) {
+    const fileBtn = document.getElementById('tab-file');
+    const msgBtn  = document.getElementById('tab-message');
+    const filePanel = document.getElementById('panel-file');
+    const msgPanel  = document.getElementById('panel-message');
+
+    if (tab === 'file') {
+      fileBtn.classList.replace('mode-toggle-btn-inactive', 'mode-toggle-btn-active');
+      msgBtn.classList.replace('mode-toggle-btn-active', 'mode-toggle-btn-inactive');
+      fileBtn.setAttribute('aria-selected', 'true');
+      msgBtn.setAttribute('aria-selected', 'false');
+      filePanel.classList.remove('hidden');
+      msgPanel.classList.add('hidden');
+    } else {
+      msgBtn.classList.replace('mode-toggle-btn-inactive', 'mode-toggle-btn-active');
+      fileBtn.classList.replace('mode-toggle-btn-active', 'mode-toggle-btn-inactive');
+      msgBtn.setAttribute('aria-selected', 'true');
+      fileBtn.setAttribute('aria-selected', 'false');
+      msgPanel.classList.remove('hidden');
+      filePanel.classList.add('hidden');
+    }
+  }
+</script>
