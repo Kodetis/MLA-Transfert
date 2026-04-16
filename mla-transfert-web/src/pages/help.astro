@@ -145,10 +145,10 @@ import Layout from '../layouts/Layout.astro';
             <span class="group-open:rotate-180 transition-transform" style="color:var(--text-3)">↓</span>
           </summary>
           <p class="px-5 py-4 text-sm" style="color:var(--text-2);border-top:1px solid var(--border)">
-            Non. Le chiffrement s'effectue intégralement dans votre navigateur avant tout envoi.
-            Le serveur ne reçoit que des données chiffrées opaques — il n'a accès ni au mot de
-            passe, ni aux clés, ni au contenu en clair. C'est ce qu'on appelle une architecture
-            <strong style="color:var(--text-1)">zero-knowledge</strong>.
+            Non — et ce n'est pas une politique de confidentialité, c'est une contrainte cryptographique.
+            Le chiffrement s'effectue dans votre navigateur avant tout envoi.
+            Le serveur reçoit des données opaques : ni mot de passe, ni clé, ni contenu en clair ne lui parviennent jamais.
+            C'est l'architecture <strong style="color:var(--text-1)">zero-knowledge</strong> : même nous ne pouvons pas lire vos fichiers.
           </p>
         </details>
 
@@ -228,10 +228,9 @@ import Layout from '../layouts/Layout.astro';
             <span class="group-open:rotate-180 transition-transform" style="color:var(--text-3)">↓</span>
           </summary>
           <p class="px-5 py-4 text-sm" style="color:var(--text-2);border-top:1px solid var(--border)">
-            Le lien identifie le transfert sur le serveur mais ne contient pas de clé de
-            déchiffrement. Sans le mot de passe ou la clé privée correspondante, les fichiers
-            restent inaccessibles même avec le lien. Transmettez le lien et le secret par des
-            canaux distincts pour une sécurité maximale.
+            Le lien localise le transfert sur le serveur — il ne contient aucune clé.
+            Sans le mot de passe ou la clé privée, les fichiers sont du bruit illisible, même pour nous.
+            Bonne pratique : envoyez le lien par un canal, le secret par un autre (SMS, appel, messagerie chiffrée).
           </p>
         </details>
 
@@ -286,11 +285,6 @@ import Layout from '../layouts/Layout.astro';
                 et des systèmes d'information pour les entités essentielles et importantes.
               </li>
             </ul>
-            <p class="text-xs mt-1" style="color:var(--text-3)">
-              La conformité réglementaire dépend également de votre contexte d'hébergement et d'usage.
-              Pour un déploiement en environnement régulé, un accompagnement juridique et technique
-              est recommandé.
-            </p>
           </div>
         </details>
 
