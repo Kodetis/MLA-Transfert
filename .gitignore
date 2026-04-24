@@ -4,12 +4,13 @@ debug/
 debugs/
 target/
 .nova-tracer/
+
 # pycache for py-bindings
 __pycache__/
 
 # mdbook
 index.html
-doc/book/mla-wasm/pkg/
+doc/book/
 mla-wasm/pkg/
 .vscode/
 

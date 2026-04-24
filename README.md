@@ -237,6 +237,8 @@ dagger call ci --src .
 | `MAX_FILE_SIZE_BYTES` | `2147483648` | Max file size (2 GB) |
 | `ALLOWED_ORIGIN` | `*` | CORS allowed origin (restrict in production) |
 
+---
+
 ## FAQ
 
 **Is `MLAArchiveWriter` `Send`?**
