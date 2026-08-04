@@ -460,6 +460,50 @@ impl MLAPrivateKey {
         &self.signing_private_key
     }
 
+    /// Recompute the public key from the private key material.
+    ///
+    /// Every hybrid component is deterministically derivable from the private
+    /// key held in `self`:
+    /// - encryption: X25519 public point from the X25519 static secret, and the
+    ///   ML-KEM-1024 encapsulation key from the ML-KEM seed (`d‖z`);
+    /// - signature verification: the Ed25519 verifying key from the Ed25519
+    ///   signing key, and the ML-DSA-87 verifying key from the ML-DSA seed (`xi`).
+    ///
+    /// The public-key serialization carries no randomness, so re-serializing the
+    /// value returned here yields bytes identical to the original `.mlapub`
+    /// (hence an identical SHA-256 fingerprint). See the
+    /// `derive_public_key_is_byte_identical` test for the proof.
+    ///
+    /// No secret material is exposed or cloned into the returned value: only the
+    /// public components are recomputed. `self` retains ownership of the private
+    /// key, which stays subject to the crate's zeroize-on-drop handling.
+    pub fn derive_public_key(&self) -> MLAPublicKey {
+        // --- Encryption public key: X25519 + ML-KEM-1024 ---
+        let public_key_ecc = PublicKey::from(&self.decryption_private_key.private_key_ecc);
+        let public_key_ml = self.decryption_private_key.private_key_seed_ml.to_pubkey();
+        let encryption_public_key = MLAEncryptionPublicKey {
+            public_key_ecc,
+            public_key_ml,
+        };
+
+        // --- Signature verification public key: Ed25519 + ML-DSA-87 ---
+        let public_key_ed25519 = self.signing_private_key.private_key_ed25519.verifying_key();
+        let public_key_mldsa87 = self
+            .signing_private_key
+            .private_key_seed_mldsa
+            .to_signing_verification_key();
+        let signature_verification_public_key = MLASignatureVerificationPublicKey {
+            public_key_ed25519,
+            public_key_mldsa87,
+            opts: KeyOpts,
+        };
+
+        MLAPublicKey::from_encryption_and_signature_verification_keys(
+            encryption_public_key,
+            signature_verification_public_key,
+        )
+    }
+
     /// Serialize the MLA private key into `dst`.
     ///
     /// The serialization format is described in `doc/src/KEY_FORMAT.md`.
@@ -904,6 +948,48 @@ mod tests {
         pub3.serialize_public_key(&mut pub3s).unwrap();
         assert_ne!(priv1s, priv3s);
         assert_ne!(pub1s, pub3s);
+    }
+
+    /// Issue #190 — Prove that the public key derived solely from a private key
+    /// is byte-identical to the original public key, and therefore shares the
+    /// same SHA-256 fingerprint. This is the acceptance criterion for importing
+    /// a lone `.mlapriv` and reconstructing the full identity in `/keys`.
+    #[test]
+    fn derive_public_key_is_byte_identical() {
+        use sha2::{Digest, Sha256};
+
+        // Fresh hybrid keypair (X25519 + ML-KEM-1024 / Ed25519 + ML-DSA-87)
+        let (priv_key, pub_key) = generate_mla_keypair().unwrap();
+
+        // Round-trip the private key through serialization, exactly as when a
+        // lone `.mlapriv` file is loaded in /keys before derivation.
+        let mut priv_ser = Vec::new();
+        priv_key.serialize_private_key(&mut priv_ser).unwrap();
+        let loaded_priv = MLAPrivateKey::deserialize_private_key(priv_ser.as_slice()).unwrap();
+
+        // Derive the public key from the reloaded private key only.
+        let derived_pub = loaded_priv.derive_public_key();
+
+        // Serialize both the original and the derived public keys.
+        let mut original_ser = Vec::new();
+        pub_key.serialize_public_key(&mut original_ser).unwrap();
+        let mut derived_ser = Vec::new();
+        derived_pub.serialize_public_key(&mut derived_ser).unwrap();
+
+        // Byte-for-byte equality: the central acceptance criterion.
+        assert_eq!(
+            derived_ser, original_ser,
+            "derived public key must be byte-identical to the original .mlapub"
+        );
+
+        // Identical SHA-256 fingerprint follows from byte identity, asserted
+        // explicitly because the product keys on this fingerprint.
+        let original_fp = Sha256::digest(&original_ser);
+        let derived_fp = Sha256::digest(&derived_ser);
+        assert_eq!(
+            derived_fp, original_fp,
+            "SHA-256 fingerprint of the derived public key must match the original"
+        );
     }
 
     #[test]
